@@ -20,36 +20,36 @@ namespace PhotoProcessor.Functions.Data
         {
             _blobContext = blobContext;
             _tableDbContext = tableDbContext;
-            _log = log.CreateLogger<TableDbContext>();
+            _log = log.CreateLogger<DataRepository>();
         }
 
-        public async Task<GeneralStatusEnum> Save(MemoryStream stream, string prefix)
+        public async Task<GeneralStatusEnum> Save(byte[] imageBytes, string prefix, ProcessStatusEnum status)
         {
             var id = Guid.NewGuid();
             var fileName = $"{prefix}Image-{id}.jpg";
 
             _log.LogInformation($"imageId: {id}");
 
-            var generalStatusCode = await _blobContext.Write(stream, fileName);
+            var generalStatusCode = await _blobContext.Write(imageBytes, fileName);
 
             if (generalStatusCode == GeneralStatusEnum.BadRequest)
             {
                 return generalStatusCode;
             }
 
-            generalStatusCode = await SaveImageDetails(fileName, id, prefix);
+            generalStatusCode = await SaveImageDetails(fileName, id, prefix, status);
 
             return generalStatusCode;
         }
 
-        private async Task<GeneralStatusEnum> SaveImageDetails(string fileName, Guid id, string prefix)
+        private async Task<GeneralStatusEnum> SaveImageDetails(string fileName, Guid id, string prefix, ProcessStatusEnum status)
         {
             var uploadEntity = new ImageEntity
             {
                 PartitionKey = prefix,
                 RowKey = id.ToString(),
                 FileName = fileName,
-                ProcessStatusEnum = ProcessStatusEnum.Uploaded
+                ProcessStatusEnum = status
             };
 
             return await _tableDbContext.InsertOrMergeEntityAsync(uploadEntity);

@@ -28,8 +28,8 @@ namespace PhotoProcessor.Functions
             // ------------------ TableStorageDb initialise ------------------
             ITableConfiguration tableConfig = new TableConfiguration
             {
-                ConnectionString = Environment.GetEnvironmentVariable("TableStorage-ConnectionString"),
-                TableName = Environment.GetEnvironmentVariable("TableStorage-TableName")
+                ConnectionString = Environment.GetEnvironmentVariable("StorageConnectionString"),
+                TableName = Environment.GetEnvironmentVariable("TableName")
             };
 
             builder.Services.AddSingleton(tableConfig);

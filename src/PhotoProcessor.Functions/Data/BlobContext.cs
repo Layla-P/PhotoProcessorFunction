@@ -13,16 +13,12 @@ namespace PhotoProcessor.Functions.Data
         private ILogger _log;
         public BlobContext(ILoggerFactory log)
         {
-            _log = log.CreateLogger<TableDbContext>();
+            _log = log.CreateLogger<BlobContext>();
         }
 
-        public async Task<GeneralStatusEnum> Write(MemoryStream stream, string fileName)
+        public async Task<GeneralStatusEnum> Write(byte[] imageBytes, string fileName)
         {
-            using (MemoryStream _stream = stream)
-            {
-                byte[] imageBytes = _stream.ToArray();
-                _log.LogInformation(imageBytes.Length.ToString());
-
+            
                 var storageConnectionString = Environment.GetEnvironmentVariable("StorageConnectionString");
                 _log.LogInformation("storageConnectionString:" + storageConnectionString);
 
@@ -51,7 +47,7 @@ namespace PhotoProcessor.Functions.Data
                 }
 
                 return GeneralStatusEnum.Ok;
-            }
+       
         }
     }
 }

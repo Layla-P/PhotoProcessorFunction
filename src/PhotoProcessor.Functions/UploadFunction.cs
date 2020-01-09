@@ -12,7 +12,7 @@ using PhotoProcessor.Functions.Models;
 
 namespace PhotoProcessor.Functions
 {
-    public  class UploadFunction
+    public class UploadFunction
     {
         private readonly IDataRepository _dataRepository;
 
@@ -22,18 +22,23 @@ namespace PhotoProcessor.Functions
         }
 
         [FunctionName("Upload")]
-        public  async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            MemoryStream stream = new MemoryStream();
+            GeneralStatusEnum status;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                await req.Body.CopyToAsync(stream);
+                byte[] imageBytes = stream.ToArray();
+                log.LogInformation(imageBytes.Length.ToString());
 
-            var status = await _dataRepository.Save(stream, "Uploads");
+                status = await _dataRepository.Save(imageBytes, "Uploads", ProcessStatusEnum.Uploaded);
 
-            log.LogInformation($"status:{status}");
-
+                log.LogInformation($"status:{status}");
+            }
             return status != GeneralStatusEnum.Ok
                 ? new BadRequestObjectResult("Something went wrong")
                 : (ActionResult)new OkObjectResult($"It worked");

@@ -8,26 +8,27 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Net.Http;
 using System.Collections.Generic;
-using Microsoft.Extensions.Options;
 using PhotoProcessor.Functions.Models;
+using Microsoft.Extensions.Logging;
 
 namespace PhotoProcessor.Functions.Processors
 {
-     public class PhotoFiddler : IPhotoFiddler
-    { private readonly PhotoApiSettings _photoApiSettings;
-        public PhotoFiddler(PhotoApiSettings photoApiSettings)
+    public class PhotoFiddler : IPhotoFiddler
+    {
+        private readonly IPhotoApiSettings _photoApiSettings;
+        private ILogger _log;
+        public PhotoFiddler(IPhotoApiSettings photoApiSettings, ILoggerFactory log)
         {
             _photoApiSettings = photoApiSettings;
+            _log = log.CreateLogger<PhotoFiddler>();
         }
-        public async Task<string> Process(string incomingImageUrl, string id, string host)
+
+        public async Task<string> Process(string incomingImageUrl)
         {
-            var imageLocation = await SaveImageLocallytest(incomingImageUrl, id);
+            
+            var processedImageUrl = await GetProcessedImage(incomingImageUrl);
 
-            var imageUrl = host + imageLocation;
-
-            var processedImageUrl = await GetProcessedImage(imageUrl);
-
-            Console.WriteLine(processedImageUrl);
+            _log.LogInformation(processedImageUrl);
 
             return processedImageUrl;
         }
@@ -35,7 +36,8 @@ namespace PhotoProcessor.Functions.Processors
         private async Task<string> GetProcessedImage(string imageUrl)
         {
             string processedImageUrl = string.Empty;
-
+            
+            string status;
             using (var httpClient = new HttpClient())
             {
                 var apiEndPointPost = "http://opeapi.ws.pho.to/addtask";
@@ -48,7 +50,7 @@ namespace PhotoProcessor.Functions.Processors
                                       <image_url>{imageUrl}</image_url>
                                     <methods_list>
                                         <method>
-                                            <name>caricature</name>
+                                            <name>animated_sparkles</name>
                                             <params>type=10</params>
                                         </method>
                                     </methods_list>
@@ -78,8 +80,6 @@ namespace PhotoProcessor.Functions.Processors
                 }
 
 
-                string status;
-
                 int i = 0;
                 do
                 {
@@ -93,6 +93,11 @@ namespace PhotoProcessor.Functions.Processors
                     status = xmlStatus?.Value;
                     ++i;
 
+                    if (status == "BadRequest")
+                    {
+                        break;
+                    }
+
                     if (status == "OK")
                     {
                         var xmlUrl = xmlGet.FirstOrDefault(x => x.Name == "result_url");
@@ -103,13 +108,14 @@ namespace PhotoProcessor.Functions.Processors
 
                 if (i == 10 && status == "InProgress")
                 {
-                    Console.WriteLine("Retrieve processed image : Timeout error.");
+                    _log.LogInformation("Retrieve processed image : Timeout error.");
                     return string.Empty;
                 }
 
             }
 
-            return processedImageUrl;
+            //return processedImageUrl;
+            return status;
 
         }
 

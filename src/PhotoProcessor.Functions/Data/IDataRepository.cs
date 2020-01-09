@@ -6,6 +6,6 @@ namespace PhotoProcessor.Functions.Data
 {
     public interface IDataRepository
     {
-        Task<GeneralStatusEnum> Save(MemoryStream stream, string prefix);
+        Task<GeneralStatusEnum> Save(byte[] imageBytes, string prefix, ProcessStatusEnum status);
     }
 }

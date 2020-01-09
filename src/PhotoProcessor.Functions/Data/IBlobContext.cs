@@ -6,6 +6,6 @@ namespace PhotoProcessor.Functions.Data
 {
     public interface IBlobContext
     {
-        Task<GeneralStatusEnum> Write(MemoryStream stream, string fileName);
+        Task<GeneralStatusEnum> Write(byte[] imageBytes, string fileName);
     }
 }
