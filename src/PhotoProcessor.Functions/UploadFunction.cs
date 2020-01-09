@@ -35,7 +35,7 @@ namespace PhotoProcessor.Functions
                 byte[] imageBytes = stream.ToArray();
                 log.LogInformation(imageBytes.Length.ToString());
 
-                status = await _dataRepository.Save(imageBytes, "Uploads", ProcessStatusEnum.Uploaded);
+                status = await _dataRepository.Save(imageBytes, ProcessStatusEnum.Uploaded);
 
                 log.LogInformation($"status:{status}");
             }

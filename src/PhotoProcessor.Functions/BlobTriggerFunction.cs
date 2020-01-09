@@ -30,7 +30,7 @@ namespace PhotoProcessor.Functions
             var imagePath = $"{path}images/UploadsImage-{name}";
             log.LogInformation(imagePath);
 
-            var x = await _photoFiddler.Process(imagePath);
+            var x = await _photoFiddler.Process(imagePath, name);
 
             log.LogInformation("status Photo:" + x);
 

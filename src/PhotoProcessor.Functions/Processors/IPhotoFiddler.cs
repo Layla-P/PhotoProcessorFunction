@@ -4,6 +4,6 @@ namespace PhotoProcessor.Functions.Processors
 {
     public interface IPhotoFiddler
     {
-        Task<string> Process(string incomingImageUrl);
+        Task<string> Process(string incomingImageUrl, string fileName);
     }
 }

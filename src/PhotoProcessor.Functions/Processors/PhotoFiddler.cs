@@ -10,33 +10,37 @@ using System.Net.Http;
 using System.Collections.Generic;
 using PhotoProcessor.Functions.Models;
 using Microsoft.Extensions.Logging;
+using PhotoProcessor.Functions.Data;
 
 namespace PhotoProcessor.Functions.Processors
 {
     public class PhotoFiddler : IPhotoFiddler
     {
         private readonly IPhotoApiSettings _photoApiSettings;
+        private readonly IDataRepository _dataRepository;
         private ILogger _log;
-        public PhotoFiddler(IPhotoApiSettings photoApiSettings, ILoggerFactory log)
+        public PhotoFiddler(IPhotoApiSettings photoApiSettings, ILoggerFactory log, IDataRepository dataRepository)
         {
             _photoApiSettings = photoApiSettings;
             _log = log.CreateLogger<PhotoFiddler>();
+            _dataRepository = dataRepository;
         }
 
-        public async Task<string> Process(string incomingImageUrl)
+        public async Task<string> Process(string incomingImageUrl, string fileName)
         {
-            
-            var processedImageUrl = await GetProcessedImage(incomingImageUrl);
 
-            _log.LogInformation(processedImageUrl);
+            var status = await GetProcessedImage(incomingImageUrl, fileName);
 
-            return processedImageUrl;
+            _log.LogInformation(status);
+
+            return status;
         }
 
-        private async Task<string> GetProcessedImage(string imageUrl)
+        private async Task<string> GetProcessedImage(string imageUrl, string fileName)
         {
-            string processedImageUrl = string.Empty;
-            
+            var processedImageUrl = string.Empty;
+            var id = fileName.Split(".")[0];
+
             string status;
             using (var httpClient = new HttpClient())
             {
@@ -71,13 +75,20 @@ namespace PhotoProcessor.Functions.Processors
                     httpClient
                         .PostAsync(apiEndPointPost, content);
 
-                if (responseMessage.IsSuccessStatusCode)
+                if (!responseMessage.IsSuccessStatusCode)
                 {
-                    var response = await responseMessage.Content.ReadAsStringAsync();
-
-                    var xml = XElement.Parse(response).Descendants().FirstOrDefault(x => x.Name == "request_id");
-                    requestId = xml?.Value;
+                    await _dataRepository.UpdateTable(id, ProcessStatusEnum.Failed);
+                    return "SomethingWentWrong";
                 }
+
+                
+                await _dataRepository.UpdateTable(id, ProcessStatusEnum.Processing);
+
+                var response = await responseMessage.Content.ReadAsStringAsync();
+
+                var xml = XElement.Parse(response).Descendants().FirstOrDefault(x => x.Name == "request_id");
+                requestId = xml?.Value;
+
 
 
                 int i = 0;
@@ -100,6 +111,8 @@ namespace PhotoProcessor.Functions.Processors
 
                     if (status == "OK")
                     {
+                        await _dataRepository.UpdateTable(id, ProcessStatusEnum.Completed);
+
                         var xmlUrl = xmlGet.FirstOrDefault(x => x.Name == "result_url");
                         processedImageUrl = xmlUrl?.Value ?? "empty node";
                     }
@@ -113,7 +126,7 @@ namespace PhotoProcessor.Functions.Processors
                 }
 
             }
-
+            _log.LogInformation(processedImageUrl);
             //return processedImageUrl;
             return status;
 
@@ -127,33 +140,7 @@ namespace PhotoProcessor.Functions.Processors
             return encodedKey.ComputeHash(stream).Aggregate("", (s, e) => s + String.Format("{0:x2}", e), s => s);
         }
 
-        private async Task<string> SaveImageLocallytest(string imageUrl, string sid)
-        {
-            var root = "/wwwroot";
-            var dir = "/images/";
-            var filename = $"{sid}.jpg";
-            var path = Environment.CurrentDirectory + root + dir;
-            var saveLocation = path + filename;
-            var rootLocation = dir + filename;
-
-            if (!Directory.Exists(path))
-            {
-                var di = Directory.CreateDirectory(path);
-            }
-
-            using (var httpClient = new HttpClient())
-            {
-                byte[] imageBytes = await
-                    httpClient
-                        .GetByteArrayAsync(imageUrl);
-                FileStream fs = new FileStream(saveLocation, FileMode.Create);
-                BinaryWriter bw = new BinaryWriter(fs);
-                bw.Write(imageBytes);
-            }
-
-            return rootLocation;
-        }
-
+      
 
     }
 }
