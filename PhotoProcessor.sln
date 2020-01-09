@@ -9,9 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{32369AD2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoProcessor.Functions", "src\PhotoProcessor.Functions\PhotoProcessor.Functions.csproj", "{3B1F9E97-5D8D-461F-A4E7-0DE7194B9A0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotoProcessor.Functions.Tests", "tests\PhotoProcessor.Functions.Tests\PhotoProcessor.Functions.Tests.csproj", "{DFA7A317-9E26-4B0A-87AD-FA964D18FFD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhotoProcessor.Functions.Tests", "tests\PhotoProcessor.Functions.Tests\PhotoProcessor.Functions.Tests.csproj", "{DFA7A317-9E26-4B0A-87AD-FA964D18FFD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionApp1", "FunctionApp1\FunctionApp1.csproj", "{769036A3-CBFC-4150-A4EB-A03D2D551410}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionApp1", "FunctionApp1\FunctionApp1.csproj", "{769036A3-CBFC-4150-A4EB-A03D2D551410}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
