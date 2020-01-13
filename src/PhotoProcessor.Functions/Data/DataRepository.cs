@@ -10,9 +10,10 @@ namespace PhotoProcessor.Functions.Data
 {
     public class DataRepository : IDataRepository
     {
-        private IBlobContext _blobContext;
-        private ITableDbContext _tableDbContext;
-        private ILogger _log;
+        private readonly IBlobContext _blobContext;
+        private readonly ITableDbContext _tableDbContext;
+        private readonly ILogger _log;
+        private Guid id;
         public DataRepository(
             IBlobContext blobContext,
             ITableDbContext tableDbContext,
@@ -23,9 +24,17 @@ namespace PhotoProcessor.Functions.Data
             _log = log.CreateLogger<DataRepository>();
         }
 
+        public async Task<UploadResponse> SaveResponse(byte[] imageBytes, ProcessStatusEnum status)
+        {
+            var uploadResponse = new UploadResponse();
+            uploadResponse.GeneralStatusEnum = await Save(imageBytes, status);
+            uploadResponse.Id = id.ToString();
+            return uploadResponse;
+        }
+
         public async Task<GeneralStatusEnum> Save(byte[] imageBytes, ProcessStatusEnum status)
         {
-            var id = Guid.NewGuid();
+            SetId();
             var fileName = $"UploadsImage-{id}.jpg";
 
             _log.LogInformation($"imageId: {id}");
@@ -42,24 +51,35 @@ namespace PhotoProcessor.Functions.Data
             return generalStatusCode;
         }
 
-        public async Task<GeneralStatusEnum> UpdateTable(string id, ProcessStatusEnum status)
+        public async Task<GeneralStatusEnum> UpdateTable(string id, ProcessStatusEnum status, string imageUrl = null)
         {
             var fileName = $"UploadsImage-{id}.jpg";
-            var generalStatusCode = await SaveImageDetails(fileName, id, status);
+            var generalStatusCode = await SaveImageDetails(fileName, id, status, imageUrl);
             return generalStatusCode;
         }
 
-        private async Task<GeneralStatusEnum> SaveImageDetails(string fileName, string id, ProcessStatusEnum status)
+        private async Task<GeneralStatusEnum> SaveImageDetails(
+            string fileName,
+            string id,
+            ProcessStatusEnum status,
+            string imageUrl = null)
         {
-            var uploadEntity = new ImageEntity
-            {
-                PartitionKey = "Uploads",
-                RowKey = id.ToString(),
-                FileName = fileName,
-                ProcessStatusEnum = status.EnumValue()
-            };
-
+            var uploadEntity = new ImageEntity("Uploads",id, fileName, status, imageUrl);
             return await _tableDbContext.InsertOrMergeEntityAsync(uploadEntity);
+        }
+
+        public async Task<bool> CheckTableRecordAvailable(string id)
+        {
+
+            var record = await _tableDbContext.GetEntityAsync("Uploads", id);
+
+            return record == null ? false : true;
+
+        }
+
+        private void SetId()
+        {
+            id = Guid.NewGuid();
         }
     }
 }

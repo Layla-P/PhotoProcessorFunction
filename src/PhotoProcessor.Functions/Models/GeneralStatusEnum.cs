@@ -10,6 +10,8 @@ namespace PhotoProcessor.Functions.Models
         Ok = 1,
         BadRequest = 2,
         ServerError = 4,
-        Fail = 5
+        Fail = 5,
+        Timeout = 6,
+        Processing = 7
     }
 }

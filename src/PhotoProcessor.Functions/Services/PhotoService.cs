@@ -12,9 +12,9 @@ using PhotoProcessor.Functions.Models;
 using Microsoft.Extensions.Logging;
 using PhotoProcessor.Functions.Data;
 
-namespace PhotoProcessor.Functions.Processors
+namespace PhotoProcessor.Functions.Services
 {
-    public class PhotoFiddler : IPhotoFiddler
+    public class PhotoFiddler : IPhotoService
     {
         private readonly IPhotoApiSettings _photoApiSettings;
         private readonly IDataRepository _dataRepository;
@@ -26,21 +26,29 @@ namespace PhotoProcessor.Functions.Processors
             _dataRepository = dataRepository;
         }
 
-        public async Task<string> Process(string incomingImageUrl, string fileName)
+        public async Task<ProcessResponse> Process(string incomingImageUrl, string fileName)
         {
-
-            var status = await GetProcessedImage(incomingImageUrl, fileName);
-
-            _log.LogInformation(status);
-
-            return status;
-        }
-
-        private async Task<string> GetProcessedImage(string imageUrl, string fileName)
-        {
-            var processedImageUrl = string.Empty;
             var id = fileName.Split(".")[0];
 
+            if (!await _dataRepository.CheckTableRecordAvailable(id))
+            {
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            ProcessResponse processResponse = await GetProcessedImage(incomingImageUrl, id);
+
+            return processResponse;
+        }
+
+        private async Task<ProcessResponse> GetProcessedImage(string imageUrl, string id)
+        {
+            ProcessResponse processResponse = new ProcessResponse
+            {
+                GeneralStatusEnum = GeneralStatusEnum.Default,
+                ProcessedImageUrl = string.Empty
+            };
+          
+           
             string status;
             using (var httpClient = new HttpClient())
             {
@@ -55,7 +63,7 @@ namespace PhotoProcessor.Functions.Processors
                                     <methods_list>
                                         <method>
                                             <name>animated_sparkles</name>
-                                            <params>type=10</params>
+                                            <params>type=0</params>
                                         </method>
                                     </methods_list>
                                 </image_process_call>";
@@ -78,7 +86,8 @@ namespace PhotoProcessor.Functions.Processors
                 if (!responseMessage.IsSuccessStatusCode)
                 {
                     await _dataRepository.UpdateTable(id, ProcessStatusEnum.Failed);
-                    return "SomethingWentWrong";
+                    processResponse.GeneralStatusEnum = GeneralStatusEnum.Fail;
+                    return processResponse;
                 }
 
                 
@@ -111,10 +120,11 @@ namespace PhotoProcessor.Functions.Processors
 
                     if (status == "OK")
                     {
-                        await _dataRepository.UpdateTable(id, ProcessStatusEnum.Completed);
-
+                       
                         var xmlUrl = xmlGet.FirstOrDefault(x => x.Name == "result_url");
-                        processedImageUrl = xmlUrl?.Value ?? "empty node";
+                        processResponse.ProcessedImageUrl = xmlUrl?.Value ?? "empty node";
+                        await _dataRepository.UpdateTable(id, ProcessStatusEnum.Completed, processResponse.ProcessedImageUrl);
+
                     }
                 }
                 while (i < 10 && status == "InProgress");
@@ -122,13 +132,13 @@ namespace PhotoProcessor.Functions.Processors
                 if (i == 10 && status == "InProgress")
                 {
                     _log.LogInformation("Retrieve processed image : Timeout error.");
-                    return string.Empty;
+                    processResponse.GeneralStatusEnum = GeneralStatusEnum.Timeout;
+                    return processResponse;
                 }
 
             }
-            _log.LogInformation(processedImageUrl);
-            //return processedImageUrl;
-            return status;
+                 
+            return processResponse;
 
         }
 
@@ -139,8 +149,6 @@ namespace PhotoProcessor.Functions.Processors
             var stream = new MemoryStream(byteArray);
             return encodedKey.ComputeHash(stream).Aggregate("", (s, e) => s + String.Format("{0:x2}", e), s => s);
         }
-
-      
 
     }
 }

@@ -12,15 +12,16 @@ namespace Functions.Models
 
         public ImageEntity(
             string partitionKey,
-            Guid id,
+            string id,
             string fileName,
-            ProcessStatusEnum processStatusEnum)
+            ProcessStatusEnum processStatusEnum,
+            string processedUrl)
         {
             PartitionKey = partitionKey;
-            RowKey = id.ToString();
+            RowKey = id;
             FileName = fileName;
             ProcessStatusEnum = processStatusEnum.EnumValue();
-            ProcessedUrl = "unset";
+            ProcessedUrl = processedUrl;
         }
 
         public string FileName { get; set; }

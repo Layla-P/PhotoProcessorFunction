@@ -3,15 +3,15 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using PhotoProcessor.Functions.Processors;
+using PhotoProcessor.Functions.Services;
 
 namespace PhotoProcessor.Functions
 {
     public class BlobTrigger
     {
-        private readonly IPhotoFiddler _photoFiddler;
+        private readonly IPhotoService _photoFiddler;
 
-        public BlobTrigger(IPhotoFiddler photoFiddler)
+        public BlobTrigger(IPhotoService photoFiddler)
         {
             _photoFiddler = photoFiddler;
         }
@@ -30,9 +30,9 @@ namespace PhotoProcessor.Functions
             var imagePath = $"{path}images/UploadsImage-{name}";
             log.LogInformation(imagePath);
 
-            var x = await _photoFiddler.Process(imagePath, name);
+            var processResponse = await _photoFiddler.Process(imagePath, name);
 
-            log.LogInformation("status Photo:" + x);
+            log.LogInformation($"Process status: {processResponse.GeneralStatusEnum}, Image URL: {processResponse.ProcessedImageUrl}");
 
         }
     }

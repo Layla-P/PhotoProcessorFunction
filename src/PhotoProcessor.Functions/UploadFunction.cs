@@ -28,20 +28,25 @@ namespace PhotoProcessor.Functions
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            GeneralStatusEnum status;
+            UploadResponse response;
             using (MemoryStream stream = new MemoryStream())
             {
                 await req.Body.CopyToAsync(stream);
                 byte[] imageBytes = stream.ToArray();
                 log.LogInformation(imageBytes.Length.ToString());
 
-                status = await _dataRepository.Save(imageBytes, ProcessStatusEnum.Uploaded);
+                response = await _dataRepository.SaveResponse(imageBytes, ProcessStatusEnum.Uploaded);
 
-                log.LogInformation($"status:{status}");
+                log.LogInformation($"status:{response.GeneralStatusEnum}");
+
             }
-            return status != GeneralStatusEnum.Ok
+            
+            var downloadFunctionUrl = Environment.GetEnvironmentVariable("DomainUrl")
+                + $"/Download?id={response.Id}";
+
+            return response.GeneralStatusEnum != GeneralStatusEnum.Ok
                 ? new BadRequestObjectResult("Something went wrong")
-                : (ActionResult)new OkObjectResult($"It worked");
+                : (ActionResult)new OkObjectResult(downloadFunctionUrl);
         }
     }
 }

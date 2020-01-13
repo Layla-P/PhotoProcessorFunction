@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PhotoProcessor.Functions;
 using PhotoProcessor.Functions.Data;
 using PhotoProcessor.Functions.Models;
-using PhotoProcessor.Functions.Processors;
+using PhotoProcessor.Functions.Services;
 using System;
 using System.Linq;
 
@@ -35,9 +35,7 @@ namespace PhotoProcessor.Functions
             builder.Services.AddSingleton(tableConfig);
             builder.Services.AddSingleton<ITableDbContext, TableDbContext>();
 
-
             builder.Services.AddScoped<IBlobContext, BlobContext>();
-
 
             builder.Services.AddScoped<IDataRepository, DataRepository>();
 
@@ -49,7 +47,9 @@ namespace PhotoProcessor.Functions
             };
 
             builder.Services.AddSingleton(photoApiSettings);
-            builder.Services.AddScoped<IPhotoFiddler, PhotoFiddler>();
+            builder.Services.AddScoped<IPhotoService, PhotoFiddler>();
+
+            builder.Services.AddScoped<IDownloadService, DownloadService>();
 
         }
     }
