@@ -249,3 +249,4 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/src/PhotoProcessor.Functions/Properties/PublishProfiles/SuperSparkly - Zip Deploy.pubxml

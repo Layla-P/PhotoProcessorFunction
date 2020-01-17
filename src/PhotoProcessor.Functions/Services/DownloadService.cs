@@ -9,6 +9,7 @@ namespace PhotoProcessor.Functions.Services
     {
         private readonly ITableDbContext _tableDbContext;
         private ILogger _log;
+
         public DownloadService(ILoggerFactory log, ITableDbContext tableDbContext)
         {
             _log = log.CreateLogger<DownloadService>();

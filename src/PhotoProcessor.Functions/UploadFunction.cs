@@ -42,7 +42,7 @@ namespace PhotoProcessor.Functions
             }
             
             var downloadFunctionUrl = Environment.GetEnvironmentVariable("DomainUrl")
-                + $"/Download?id={response.Id}";
+                + $"/Download?code={Environment.GetEnvironmentVariable("DownloadAppKey")}&id={response.Id}";
 
             return response.GeneralStatusEnum != GeneralStatusEnum.Ok
                 ? new BadRequestObjectResult("Something went wrong")

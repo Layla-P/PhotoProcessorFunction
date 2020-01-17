@@ -20,7 +20,6 @@ namespace PhotoProcessor.Functions.Data
         {
             _log = log.CreateLogger<TableDbContext>();
             // https://stackoverflow.com/questions/54876798/how-can-i-use-the-new-di-to-inject-an-ilogger-into-an-azure-function-using-iwebj
-
             _tableConfiguration = tableConfiguration;
 
         }

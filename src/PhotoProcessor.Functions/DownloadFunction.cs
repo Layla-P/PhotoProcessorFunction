@@ -30,14 +30,30 @@ namespace PhotoProcessor.Functions
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string id = req.Query["id"];
+
             if (String.IsNullOrEmpty(id))
             {
                 return new BadRequestObjectResult("Please pass a id on the query string");
             }
 
-            var downloadResponse = await _downloadService.FetchDownload(id);
+
+            if(_downloadService == null) {
+                log.LogError("download service null");
+                return new BadRequestObjectResult("error");
+            }
+
+            DownloadResponse downloadResponse;
+            try
+            {
+                downloadResponse = await _downloadService.FetchDownload(id);
+            }
+            catch(Exception e)
+            {
+                log.LogError($"fuck it:{e}");
+                return new BadRequestObjectResult(e);
+            }
             
-            return downloadResponse.GeneralStatusEnum != GeneralStatusEnum.Ok
+            return downloadResponse.GeneralStatusEnum == GeneralStatusEnum.Ok
                 ? new OkObjectResult(downloadResponse.ImageEntity.ProcessedUrl)
                 : new ObjectResult(StatusCodes.Status102Processing);
         }

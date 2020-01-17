@@ -17,13 +17,12 @@ namespace PhotoProcessor.Functions
         }
 
         [FunctionName("BlobTrigger")]
-        [StorageAccount("AzureWebJobsStorage")]
+        [StorageAccount("StorageConnectionString")]
         public async Task Run([BlobTrigger("images/UploadsImage-{name}")]Stream myBlob, string name, ILogger log)
         {
             log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
 
-            // send photo to Pho.to API and update status
-
+  
             var path = Environment.GetEnvironmentVariable("BlobStoragePath");
 
 

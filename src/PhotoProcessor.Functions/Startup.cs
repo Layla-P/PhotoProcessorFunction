@@ -41,14 +41,13 @@ namespace PhotoProcessor.Functions
 
             IPhotoApiSettings photoApiSettings = new PhotoApiSettings
             {
-                PrivateKey = Environment.GetEnvironmentVariable("PhotoApiSettings:PrivateKey"),
-                AppId = Environment.GetEnvironmentVariable("PhotoApiSettings:AppId")
+                PrivateKey = Environment.GetEnvironmentVariable("PhotoApiSettingsPrivateKey"),
+                AppId = Environment.GetEnvironmentVariable("PhotoApiSettingsAppId")
 
             };
 
             builder.Services.AddSingleton(photoApiSettings);
             builder.Services.AddScoped<IPhotoService, PhotoFiddler>();
-
             builder.Services.AddScoped<IDownloadService, DownloadService>();
 
         }
