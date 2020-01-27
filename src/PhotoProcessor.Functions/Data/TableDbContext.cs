@@ -90,6 +90,7 @@ namespace PhotoProcessor.Functions.Data
             {
                 if (_table is null)
                 {
+                    _log.LogInformation("table was null in GetEntityAsync");
                     await CreateTableAsync();
                 }
 

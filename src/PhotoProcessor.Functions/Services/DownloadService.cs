@@ -25,6 +25,7 @@ namespace PhotoProcessor.Functions.Services
             // use try/parse instead?
             if (imageEntity.ProcessStatusEnum != ProcessStatusEnum.Completed.EnumValue())
             {
+                _log.LogInformation(imageEntity.ProcessStatusEnum);
                 downloadResponse.GeneralStatusEnum = GeneralStatusEnum.Processing;
                 downloadResponse.ImageEntity = null;
             }

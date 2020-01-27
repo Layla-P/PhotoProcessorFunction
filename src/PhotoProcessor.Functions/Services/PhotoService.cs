@@ -87,6 +87,7 @@ namespace PhotoProcessor.Functions.Services
                 {
                     await _dataRepository.UpdateTable(id, ProcessStatusEnum.Failed);
                     processResponse.GeneralStatusEnum = GeneralStatusEnum.Fail;
+                    _log.LogError("Processing failed");
                     return processResponse;
                 }
 
@@ -113,18 +114,26 @@ namespace PhotoProcessor.Functions.Services
                     status = xmlStatus?.Value;
                     ++i;
 
-                    if (status == "BadRequest")
+                    if (status.ToLower() == "bad request")
                     {
+                        await _dataRepository.UpdateTable(id, ProcessStatusEnum.Failed);
+                        _log.LogError("Photoservice - BadRequest");
                         break;
                     }
 
-                    if (status == "OK")
+                    if (status.ToLower() == "ok")
                     {
-                       
+                        _log.LogInformation("processing completed");
                         var xmlUrl = xmlGet.FirstOrDefault(x => x.Name == "result_url");
                         processResponse.ProcessedImageUrl = xmlUrl?.Value ?? "empty node";
                         await _dataRepository.UpdateTable(id, ProcessStatusEnum.Completed, processResponse.ProcessedImageUrl);
 
+                    }
+
+                    else
+                    {
+                        _log.LogInformation("something else went wrong");
+                        await _dataRepository.UpdateTable(id, ProcessStatusEnum.Failed);
                     }
                 }
                 while (i < 10 && status == "InProgress");
